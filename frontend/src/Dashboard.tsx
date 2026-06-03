@@ -46,7 +46,8 @@ type HistoryData = {
   ir_detected: boolean | number;
 };
 
-const BASE_URL = "http://127.0.0.1:8000";
+// Replace your existing BASE_URL line with this:
+const BASE_URL = "https://temperaturemonitoring-production.up.railway.app";
 
 export default function Dashboard() {
   const [latest, setLatest] = useState<LatestSensorData | null>(null);
