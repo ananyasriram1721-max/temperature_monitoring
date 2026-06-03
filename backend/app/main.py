@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+import os
 
 from app.database import SessionLocal, engine
 from app.models import Base, SensorData
@@ -11,6 +14,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# CORS is still useful if you develop locally with separate ports
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,6 +22,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- NEW: Static File Serving ---
+# Mount the static assets folder (JS/CSS)
+# Make sure your built react files are in a 'static' folder in your root
+app.mount("/assets", StaticFiles(directory="backend/static/assets"), name="assets")
+
+@app.get("/")
+async def read_index():
+    return FileResponse("static/index.html")
+# --------------------------------
 
 # DB Dependency generator helper
 def get_db():
@@ -27,10 +41,7 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/")
-def root():
-    return {"message": "IoT API running"}
-
+# API Endpoints
 @app.post("/api/v1/sensor-data")
 def create_sensor_data(payload: SensorDataCreate, db: Session = Depends(get_db)):
     db_data = SensorData(
@@ -51,5 +62,9 @@ def latest(db: Session = Depends(get_db)):
 
 @app.get("/api/v1/sensor-data/history")
 def history(db: Session = Depends(get_db)):
-    # Pull the latest 50 logs directly
     return db.query(SensorData).order_by(SensorData.id.desc()).limit(50).all()
+
+# Fallback for React Router (if you use it)
+@app.get("/{rest_of_path:path}")
+async def serve_spa(rest_of_path: str):
+    return FileResponse("static/index.html")
