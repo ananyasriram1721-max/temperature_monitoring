@@ -1,23 +1,12 @@
-from sqlalchemy import Column, Integer, Float, Boolean, DateTime
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, Float, Boolean
+from backend.app.database import Base
 
-from app.database import Base
 
 class SensorData(Base):
-
     __tablename__ = "sensor_data"
 
-    id = Column(Integer, primary_key=True)
-
-    temperature = Column(Float)
-
-    humidity = Column(Float)
-
-    predicted_temperature = Column(Float)
-
-    ir_detected = Column(Boolean)
-
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-    )
+    id = Column(Integer, primary_key=True, index=True)
+    temperature = Column(Float, nullable=False)
+    humidity = Column(Float, nullable=False)
+    predicted_temperature = Column(Float, nullable=False)
+    ir_detected = Column(Boolean, default=False)

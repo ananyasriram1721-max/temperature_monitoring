@@ -3,14 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 import os
-import uvicorn
 
-from app.database import SessionLocal, engine
-from app.models import Base, SensorData
-from app.schema import SensorDataCreate
-
-# ---------------- DATABASE INIT ----------------
-Base.metadata.create_all(bind=engine)
+from backend.app.database import SessionLocal, engine
+from backend.app.models import Base, SensorData
+from backend.app.schema import SensorDataCreate
 
 # ---------------- APP INIT ----------------
 app = FastAPI()
@@ -24,6 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---------------- DB INIT (SAFE ON STARTUP) ----------------
+@app.on_event("startup")
+def startup():
+    """
+    Safe place to initialize DB tables.
+    Avoids Railway import-time crashes.
+    """
+    Base.metadata.create_all(bind=engine)
+
 # ---------------- DB DEPENDENCY ----------------
 def get_db():
     db = SessionLocal()
@@ -32,19 +37,27 @@ def get_db():
     finally:
         db.close()
 
-# ---------------- ROUTES ----------------
+# ---------------- API ROUTES ----------------
+
 @app.post("/api/v1/sensor-data")
-def create_sensor_data(payload: SensorDataCreate, db: Session = Depends(get_db)):
-    db_data = SensorData(**payload.dict())
-    db.add(db_data)
+def create_sensor_data(
+    payload: SensorDataCreate,
+    db: Session = Depends(get_db)
+):
+    obj = SensorData(**payload.dict())
+    db.add(obj)
     db.commit()
-    db.refresh(db_data)
-    return db_data
+    db.refresh(obj)
+    return obj
 
 
 @app.get("/api/v1/sensor-data/latest")
 def latest(db: Session = Depends(get_db)):
-    return db.query(SensorData).order_by(SensorData.id.desc()).first()
+    return (
+        db.query(SensorData)
+        .order_by(SensorData.id.desc())
+        .first()
+    )
 
 
 @app.get("/api/v1/sensor-data/history")
@@ -57,7 +70,9 @@ def history(db: Session = Depends(get_db)):
     )
 
 # ---------------- STATIC FRONTEND ----------------
-static_path = os.path.join(os.path.dirname(__file__), "..", "static")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+static_path = os.path.normpath(os.path.join(BASE_DIR, "..", "static"))
 
 if os.path.exists(static_path):
     app.mount(
@@ -65,8 +80,3 @@ if os.path.exists(static_path):
         StaticFiles(directory=static_path, html=True),
         name="frontend"
     )
-
-# ---------------- MAIN ----------------
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
