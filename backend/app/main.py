@@ -5,8 +5,7 @@ from sqlalchemy.orm import Session
 import os
 import uvicorn
 
-from app.database import SessionLocal, engine
-from app.models import Base, SensorData
+from backend.app.database import SessionLocal, enginefrom app.models import Base, SensorData
 from app.schema import SensorDataCreate
 
 # ---------------- DATABASE INIT ----------------

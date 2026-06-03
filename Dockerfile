@@ -17,17 +17,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# install backend deps
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# copy backend
 COPY backend/ /app/backend/
 
-# copy frontend build
 COPY --from=build-frontend /frontend/dist /app/static
 
-# IMPORTANT (this fixes import confusion)
 ENV PYTHONPATH=/app
 
 EXPOSE 8000
