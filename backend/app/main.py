@@ -9,12 +9,10 @@ from app.database import SessionLocal, engine
 from app.models import Base, SensorData
 from app.schema import SensorDataCreate
 
-# Ensure tables exist on app spin up
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# CORS is still useful if you develop locally with separate ports
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,17 +21,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- NEW: Static File Serving ---
-# Mount the static assets folder (JS/CSS)
-# Make sure your built react files are in a 'static' folder in your root
+# --- Consolidated Static File Serving ---
+# Mount your assets. Assuming the path relative to the root is 'backend/static/assets'
 app.mount("/assets", StaticFiles(directory="backend/static/assets"), name="assets")
 
-@app.get("/")
-async def read_index():
-    return FileResponse("static/index.html")
-# --------------------------------
+@app.get("/{rest_of_path:path}")
+async def serve_spa(rest_of_path: str):
+    # 1. Handle API routes first so they aren't caught by the SPA fallback
+    if rest_of_path.startswith("api/"):
+        # This is handled by your API functions, but if you hit this 
+        # point, let the app return a 404 or handle accordingly
+        return {"error": "Not found"}
 
-# DB Dependency generator helper
+    # 2. Serve the SPA index.html for any other route
+    return FileResponse("backend/static/index.html")
+
+# --- API Endpoints ---
 def get_db():
     db = SessionLocal()
     try:
@@ -41,15 +44,9 @@ def get_db():
     finally:
         db.close()
 
-# API Endpoints
 @app.post("/api/v1/sensor-data")
 def create_sensor_data(payload: SensorDataCreate, db: Session = Depends(get_db)):
-    db_data = SensorData(
-        temperature=payload.temperature,
-        humidity=payload.humidity,
-        predicted_temperature=payload.predicted_temperature,
-        ir_detected=payload.ir_detected
-    )
+    db_data = SensorData(**payload.dict())
     db.add(db_data)
     db.commit()
     db.refresh(db_data)
@@ -57,14 +54,8 @@ def create_sensor_data(payload: SensorDataCreate, db: Session = Depends(get_db))
 
 @app.get("/api/v1/sensor-data/latest")
 def latest(db: Session = Depends(get_db)):
-    data = db.query(SensorData).order_by(SensorData.id.desc()).first()
-    return data
+    return db.query(SensorData).order_by(SensorData.id.desc()).first()
 
 @app.get("/api/v1/sensor-data/history")
 def history(db: Session = Depends(get_db)):
     return db.query(SensorData).order_by(SensorData.id.desc()).limit(50).all()
-
-# Fallback for React Router (if you use it)
-@app.get("/{rest_of_path:path}")
-async def serve_spa(rest_of_path: str):
-    return FileResponse("static/index.html")
