@@ -1,0 +1,17 @@
+html, 
+body, 
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  color-scheme: light !important; /* Force browser default elements to light rendering */
+}
+
+/* Clear any global Recharts color overrides */
+.recharts-default-tooltip {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
