@@ -24,8 +24,7 @@ app.add_middleware(
 
 # --- Consolidated Static File Serving ---
 # Mount your assets. Assuming the path relative to the root is 'backend/static/assets'
-app.mount("/assets", StaticFiles(directory="backend/static/assets"), name="assets")
-
+app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
 @app.get("/{rest_of_path:path}")
 async def serve_spa(rest_of_path: str):
     # 1. Handle API routes first so they aren't caught by the SPA fallback
@@ -35,7 +34,7 @@ async def serve_spa(rest_of_path: str):
         return {"error": "Not found"}
 
     # 2. Serve the SPA index.html for any other route
-    return FileResponse("backend/static/index.html")
+    return FileResponse("static/index.html")
 
 # --- API Endpoints ---
 def get_db():
