@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import os
 
-DATABASE_URL = "sqlite:///sensor.db"
+# Change to /tmp/sensor.db so the app has write permissions
+DATABASE_URL = "sqlite:////tmp/sensor.db"
 
 engine = create_engine(
     DATABASE_URL,
