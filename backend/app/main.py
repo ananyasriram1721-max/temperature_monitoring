@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import os
+import uvicorn
 
 from app.database import SessionLocal, engine
 from app.models import Base, SensorData
