@@ -4,9 +4,9 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 import os
 
-from backend.app.database import SessionLocal, engine
-from backend.app.models import Base, SensorData
-from backend.app.schema import SensorDataCreate
+from app.database import SessionLocal, engine
+from app.models import Base, SensorData
+from app.schema import SensorDataCreate
 
 # ---------------- APP INIT ----------------
 app = FastAPI()
