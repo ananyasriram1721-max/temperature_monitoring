@@ -1,3 +1,7 @@
+// ws.ts
 export const createSensorSocket = () => {
-  return new WebSocket("ws://127.0.0.1:8000/ws/sensor");
+  // Use 'wss' for HTTPS sites and 'ws' for HTTP sites
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const host = window.location.host;
+  return new WebSocket(`${protocol}://${host}/ws/sensor`);
 };

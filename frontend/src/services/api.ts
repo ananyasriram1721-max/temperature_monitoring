@@ -1,11 +1,27 @@
-const BASE_URL = "http://localhost:8000";
+// api.ts
+
+// By removing BASE_URL and starting paths with '/', 
+// the browser automatically requests data from the 
+// same domain/host that served the website.
 
 export const getLatest = async () => {
-  const res = await fetch(`${BASE_URL}/api/v1/sensor-data/latest`);
-  return res.json();
+  try {
+    const res = await fetch("/api/v1/sensor-data/latest");
+    if (!res.ok) throw new Error("Network response was not ok");
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching latest data:", error);
+    throw error;
+  }
 };
 
 export const getHistory = async () => {
-  const res = await fetch(`${BASE_URL}/api/v1/sensor-data/history`);
-  return res.json();
+  try {
+    const res = await fetch("/api/v1/sensor-data/history");
+    if (!res.ok) throw new Error("Network response was not ok");
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching history data:", error);
+    throw error;
+  }
 };
