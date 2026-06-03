@@ -47,7 +47,7 @@ type HistoryData = {
 };
 
 // Replace your existing BASE_URL line with this:
-const BASE_URL = "https://temperaturemonitoring-production.up.railway.app";
+const BASE_URL = "";
 
 export default function Dashboard() {
   const [latest, setLatest] = useState<LatestSensorData | null>(null);
