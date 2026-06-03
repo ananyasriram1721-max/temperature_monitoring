@@ -59,3 +59,8 @@ def latest(db: Session = Depends(get_db)):
 @app.get("/api/v1/sensor-data/history")
 def history(db: Session = Depends(get_db)):
     return db.query(SensorData).order_by(SensorData.id.desc()).limit(50).all()
+
+if __name__ == "__main__":
+    # Render assigns the port to the environment variable $PORT
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
