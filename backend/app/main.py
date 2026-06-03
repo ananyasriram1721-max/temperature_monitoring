@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 import os
 import uvicorn
 
-from backend.app.database import SessionLocal, enginefrom app.models import Base, SensorData
+from app.database import SessionLocal, engine
+from app.models import Base, SensorData
 from app.schema import SensorDataCreate
 
 # ---------------- DATABASE INIT ----------------
@@ -17,7 +18,7 @@ app = FastAPI()
 # ---------------- CORS ----------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten in production if needed
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,7 +32,7 @@ def get_db():
     finally:
         db.close()
 
-# ---------------- API ROUTES ----------------
+# ---------------- ROUTES ----------------
 @app.post("/api/v1/sensor-data")
 def create_sensor_data(payload: SensorDataCreate, db: Session = Depends(get_db)):
     db_data = SensorData(**payload.dict())
@@ -55,12 +56,17 @@ def history(db: Session = Depends(get_db)):
         .all()
     )
 
-# ---------------- STATIC FRONTEND (VITE BUILD) ----------------
-# IMPORTANT: must exist before running container
-if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="frontend")
+# ---------------- STATIC FRONTEND ----------------
+static_path = os.path.join(os.path.dirname(__file__), "..", "static")
+
+if os.path.exists(static_path):
+    app.mount(
+        "/",
+        StaticFiles(directory=static_path, html=True),
+        name="frontend"
+    )
 
 # ---------------- MAIN ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
